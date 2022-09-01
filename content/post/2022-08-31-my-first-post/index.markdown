@@ -26,24 +26,10 @@ I recently picked up the book [Mathletics](https://www.amazon.com/Mathletics-Gam
 The first chapter "Baseball's Pythagorean Theorem" describes a mathematical relationship to estimate the percentage games won in baseball, attributed to Bill James. 
 
 {{< math >}}
-$$\text{% games won} = \frac{\text{runs scored}^2} {\text{runs scored}^2 + \text{runs allowed }^2}$$
+`$$\text{% games won} = \frac{\text{runs scored}^2} {\text{runs scored}^2 + \text{runs allowed }^2}$$`
 {{< math >}}
 
-```{r echo=FALSE}
-library(ggplot2)
-
-x = seq(-1, 1, .01)
-y = sin(x^3)/(1 + x^6)
-
-ggplot(aes(x = x, y = y), data = NULL) +
-geom_line() +
-geom_ribbon(
-  aes(ymin = 0, ymax = y), 
-  fill = "pink", 
-  alpha = 0.5
-  ) +
-theme_void() 
-```
+<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-1-1.png" width="672" />
 
 Lets write some math
 
