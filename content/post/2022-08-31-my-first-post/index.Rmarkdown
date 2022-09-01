@@ -1,5 +1,5 @@
 ---
-title: My first post
+title: Football, Pythagoras and Bad Statistical Communication
 author: Zach Eisenstein
 date: '2022-08-31'
 slug: my-first-post
@@ -21,29 +21,62 @@ image:
 projects: []
 ---
 
-I recently picked up the book [Mathletics](https://www.amazon.com/Mathletics-Gamblers-Managers-Mathematics-Sports-dp-0691177627/dp/0691177627/) by Wayne Winston after hearing a recommendation in an online R meetup. The book's tagline: "How gamblers, managers, and fans use mathematics in sports."
+I recently picked up the book [Mathletics](https://www.amazon.com/Mathletics-Gamblers-Managers-Mathematics-Sports-dp-0691177627/dp/0691177627/) "How gamblers, managers, and fans use mathematics in sports." by Wayne Winston after hearing a recommendation in an online R meetup. I like math, i like sports, what could go wrong. 
 
-The first chapter "Baseball's Pythagorean Theorem" describes a mathematical relationship to estimate the percentage games won in baseball, attributed to Bill James. 
+The first chapter "Baseball's Pythagorean Theorem" describes a mathematical relationship attributed to Bill James. The idea is to estimate the percentage of games won in baseball based solely on the offensive and defensive production (runs scored, and runs allowed respectively).
+
+> Bill James studied many years of Major League Baseball standing and found the percentage of games won by a baseball team can be well approximated by the formula
 
 {{< math >}}
 $$\text{% games won} = \frac{\text{runs scored}^2} {\text{runs scored}^2 + \text{runs allowed }^2}$$
 {{< math >}}
 
-```{r echo=FALSE}
-library(ggplot2)
+My first thought was this doesn't look very "pythagorean" at all but I continued. Later, the right hand side of the equation was divided through by {{< math >}}$\text{runs scored}^2${{< math >}} and by letting {< math >}}$R = \frac{\text{runs scored}} {\text{runs allowed}}${{< math >}}you get the new expression 
 
-x = seq(-1, 1, .01)
-y = sin(x^3)/(1 + x^6)
+{{< math >}}
+$$\text{% games won} = \frac{R^2} {R^2 + 1}$$
+{{< math >}}
+Now this *really* isn't looking pythagorean...
 
-ggplot(aes(x = x, y = y), data = NULL) +
-geom_line() +
-geom_ribbon(
-  aes(ymin = 0, ymax = y), 
-  fill = "pink", 
-  alpha = 0.5
-  ) +
-theme_void() 
+The chapter continues touting the accuracy of the formula
+> For example, the 2016 LA Dodgers scored 725 runs and gave up 638 runs. Their scoring ratio was 1.136, with a predicted win percentage of .5636 and they actually won .5618.
+
+but to the authors' credit, they attempted to replicate Bill James expression using data from the 2005-2016 seasons (and excel data table, tsk tsk). What they did was generalize the equation above to allow the exponent to vary ie {{< math >}}$\text{% games won} = \frac{R^e} {R^e + 1}${{< math >}}. Ultimately excel found that an exponent of 1.8 minimized the error and that was relatively close to **the original** pythagorean theorem.
+
+To this point, I was not too bothered (except for the use of excel). I was only mildly concerned about the lack of communication of uncertainty in the estimate. But where things started to not sit right with me was in the estimation of e for other sports. 
+> Daryl Morey, currently the GM for the Houston Rockets NBA team, has shown that for the NFL, e = 2.37 gives the most accurate prediction while for the NBA e = 13.91. 
+
+While it's not entirely clear, the estimate of 2.37 appears to have been generated from a *single* NFL season, 2015.  
+This is where I started to have issues:
+
+In no particular order:
+
+- How uncertain is the estimate of this magic exponent?
+- Why is it we're assuming this particular functional form? Is there something special about the non-linear equation?
+- Could you perhaps get better predictions using points for and points against separately?
+- How good are predictions based on random chance alone? In the NFL, there are only 16 games (now 17) in a season. So wins are clustered around 8. 
+- Rather than the focus being on the correct estimate, perhaps we should instead quantify the reduction in uncertainty based on the prediction?
+- Predicting wins based on points scored seems a bit like prediciting foot length by shoe size. It's less a predictor and more intimately tied to the outcome itself.
+- Why is the basketball GM opining on football analytics (half kidding)
+
+I set off to investigate some of the above. 
+
+```{r setup, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(nflverse)
+theme_set(theme_light())
 ```
 
-Lets write some math
+Lets start by looking at the shape of this "pythagorean theorem"
+
+```{r}
+tibble(R = seq(0.5, 1.5, 0.1)) %>%
+    crossing(tibble(e = c(2, 1.8, 2.37, 13.91),
+                    label = c('MLB (2)', 'MLB (1.8)', 'NFL (2.37)', 'NBA (13.91)'))) %>%
+    mutate(pred_win = R^e / (R^e + 1)) %>%
+    ggplot(aes(R, pred_win, color = label)) +
+        geom_line()
+```
+
+
 
