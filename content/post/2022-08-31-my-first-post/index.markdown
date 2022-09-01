@@ -31,19 +31,22 @@ The first chapter "Baseball's Pythagorean Theorem" describes a mathematical rela
 `$$\text{% games won} = \frac{\text{runs scored}^2} {\text{runs scored}^2 + \text{runs allowed }^2}$$`
 {{< math >}}
 
-My first thought was this doesn't look very "pythagorean" at all but I continued. Later, the right hand side of the equation was divided through by {{< math >}}$\text{runs scored}^2${{< math >}} and by letting {< math >}}$R = \frac{\text{runs scored}} {\text{runs allowed}}${{< math >}}you get the new expression 
+My first thought was this doesn't look very "pythagorean" at all but I continued. Later, the right hand side of the equation was divided through by {{< math >}}$\text{runs scored}^2${{< math >}} and by letting {{< math >}}$R = \frac{\text{runs scored}} {\text{runs allowed}}${{< math >}}you get the new expression 
 
 {{< math >}}
 `$$\text{% games won} = \frac{R^2} {R^2 + 1}$$`
 {{< math >}}
 Now this *really* isn't looking pythagorean...
 
-The chapter continues touting the accuracy of the formula
+The chapter continues touting the accuracy of the formula:
+
 > For example, the 2016 LA Dodgers scored 725 runs and gave up 638 runs. Their scoring ratio was 1.136, with a predicted win percentage of .5636 and they actually won .5618.
+
 
 but to the authors' credit, they attempted to replicate Bill James expression using data from the 2005-2016 seasons (and excel data table, tsk tsk). What they did was generalize the equation above to allow the exponent to vary ie {{< math >}}$\text{% games won} = \frac{R^e} {R^e + 1}${{< math >}}. Ultimately excel found that an exponent of 1.8 minimized the error and that was relatively close to **the original** pythagorean theorem.
 
 To this point, I was not too bothered (except for the use of excel). I was only mildly concerned about the lack of communication of uncertainty in the estimate. But where things started to not sit right with me was in the estimation of e for other sports. 
+
 > Daryl Morey, currently the GM for the Houston Rockets NBA team, has shown that for the NFL, e = 2.37 gives the most accurate prediction while for the NBA e = 13.91. 
 
 While it's not entirely clear, the estimate of 2.37 appears to have been generated from a *single* NFL season, 2015.  
