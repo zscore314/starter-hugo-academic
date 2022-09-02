@@ -85,7 +85,134 @@ tibble(R = seq(0.5, 1.5, 0.1)) %>%
 ```
 
 <img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-1-1.png" width="672" />
+It seems scoring ratio is strongly associated with win probability in the NBA, not so much in the other sports. 
 
+Now I'll use NFL data utilizing the `load_schedules` function from `nflreadrr` to explore further. 
+
+Start by getting wins and losses by team.
+
+
+```r
+games <- nflreadr::load_schedules(1999:2021)
+
+home <- games %>%
+  filter(game_type == 'REG') %>%
+  transmute(
+    season = season,
+    team = home_team,
+    week = week,
+    points_for = home_score,
+    points_against = away_score
+  )
+
+away <- games %>%
+  filter(game_type == 'REG') %>%
+  transmute(
+    season = season,
+    team = away_team,
+    week = week,
+    points_for = away_score,
+    points_against = home_score
+  )
+
+results <- bind_rows(home, away) %>%
+  arrange(week) %>%
+  mutate(win = case_when(
+    points_for > points_against ~ 1,
+    points_for < points_against ~ 0,
+    TRUE ~ 0.5
+  ))
+
+results <- results %>%
+  group_by(season, team) %>%
+  summarise(
+    w = sum(win == 1),
+    l = sum(win == 0),
+    t = sum(win == 0.5),
+    total_games = n(),
+    win_pct = sum(win) / n(),
+    pf = sum(points_for),
+    pa = sum(points_against),
+    pd = pf - pa
+    
+  ) %>%
+  ungroup() %>%
+  mutate(r = pf / pa)
+```
+
+```
+## `summarise()` has grouped output by 'season'. You can override using the
+## `.groups` argument.
+```
+
+```r
+head(results)
+```
+
+```
+## # A tibble: 6 × 11
+##   season team      w     l     t total_games win_pct    pf    pa    pd     r
+##    <int> <chr> <int> <int> <int>       <int>   <dbl> <int> <int> <int> <dbl>
+## 1   1999 ARI       6    10     0          16   0.375   245   382  -137 0.641
+## 2   1999 ATL       5    11     0          16   0.312   285   380   -95 0.75 
+## 3   1999 BAL       8     8     0          16   0.5     324   277    47 1.17 
+## 4   1999 BUF      11     5     0          16   0.688   320   229    91 1.40 
+## 5   1999 CAR       8     8     0          16   0.5     421   381    40 1.10 
+## 6   1999 CHI       6    10     0          16   0.375   272   341   -69 0.798
+```
+
+The results table contains all team results from the 1999 through 2021 seasons
+
+Let's take a look at the results of the 2015 season
+
+
+```r
+results %>%
+  filter(season == "2015") %>%
+  ggplot(aes(r, win_pct)) +
+  geom_nfl_logos(aes(team_abbr = team), width = 0.075, alpha = 0.6) +
+  scale_y_continuous(labels = scales::percent_format()) +
+  labs(x = "Scoring Ratio, R",
+       y = "Win Percentage",
+       title = "2015 NFL Season")
+```
+
+<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-3-1.png" width="672" />
+## Logistic Regression
+
+
+```r
+results %>%
+  filter(season == "2015") %>%
+  glm(win_pct ~ r, family = binomial, weights=total_games, data = .)
+```
+
+```
+## 
+## Call:  glm(formula = win_pct ~ r, family = binomial, data = ., weights = total_games)
+## 
+## Coefficients:
+## (Intercept)            r  
+##      -2.757        2.684  
+## 
+## Degrees of Freedom: 31 Total (i.e. Null);  30 Residual
+## Null Deviance:	    77.21 
+## Residual Deviance: 12.46 	AIC: 115.2
+```
+
+
+Let's take a look at my hometown team, the Chicago Bears
+
+
+```r
+results %>%
+  filter(team == "CHI") %>%
+  select(season, win_pct, r) %>%
+  ggplot(aes(r, win_pct)) +
+  geom_point()
+```
+
+<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-5-1.png" width="672" />
 
 
 
