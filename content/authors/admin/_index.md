@@ -18,9 +18,9 @@ bio: Dynamic Actuary, consultant and manager with 14+ years of diverse insurance
 
 # Interests to show in About widget
 interests:
-  - Bayesian Statistics
   - Risk & Uncertainty
   - Capital Allocation
+  - Bayesian Statistics
 
 # Education to show in About widget
 education:
