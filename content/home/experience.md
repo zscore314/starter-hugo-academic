@@ -43,16 +43,43 @@ experience:
     location: Chicago
     date_start: '2019-01-01'
     date_end: '2020-05-01'
-#    description: Taught electronic engineering and researched semiconductor physics. 
+#    description: text
 
   - title: AVP, Modeling Actuary
-    company: Assurant, Corp Actuarial & Risk Mgmt
+    company: Assurant Inc., Office of Risk Management
     company_url: 'https://www.assurant.com/home'
     company_logo: assurant
-    location: New York
+    location: New York, NY
     date_start: '2016-08-01'
     date_end: '2019-01-01'
-#    description: Taught electronic engineering and researched semiconductor physics. 
+#    description: text 
+
+  - title: ERM Actuary
+    company: Assurant Inc., Corp Actuarial & Risk Mgmt
+    company_url: 'https://www.assurant.com/home'
+    company_logo: assurant
+    location: New York, NY
+    date_start: '2012-08-01'
+    date_end: '2016-08-01'
+#    description: text 
+
+  - title: Senior Actuarial Associate
+    company: Assurant Solutions, International
+    company_url: 'https://m1.assurantsolutions.com/'
+    company_logo: assurant
+    location: Miami, FL
+    date_start: '2011-01-01'
+    date_end: '2012-07-01'
+#    description: text 
+
+  - title: Actuarial Associate
+    company: Assurant Solutions, Product Development
+    company_url: 'https://m1.assurantsolutions.com/'
+    company_logo: assurant
+    location: Miami, FL
+    date_start: '2008-07-01'
+    date_end: '2011-01-01'
+#    description: text 
 
 
 design:

@@ -32,7 +32,7 @@ feature:
     icon: r-project
     icon_pack: fab
     name: R
-  - description: 80%
+  - description: 70%
     icon: python
     icon_pack: fab
     name: Python
