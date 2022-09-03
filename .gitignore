@@ -1,6 +1,5 @@
 # IDEs
 .idea/
-
 # Hugo
 /resources/
 /public/
@@ -9,12 +8,10 @@ node_modules/
 go.sum
 .hugo_build.lock
 Thumbs.db
-
 #Rstudio
 .Rproj.user
 .Rhistory
 .RData
 .Ruserdata
 .DS_Store
-
-
+sandbox.R
