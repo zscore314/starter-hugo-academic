@@ -143,7 +143,7 @@ b <- rowSums(sim / n)
 ```
 
 
-```{r}
+```{r, echo = F}
 
 quantile_compare <- function(q = c(.5, .75, .8, .9, .95, .99, .995, .999)) {
   tibble(Metric        = c('Mean', 'SD', q), 
@@ -201,7 +201,7 @@ b <- rowSums(sim / n)
 ```
 
 
-```{r}
+```{r, echo = F}
 
 ft_1 <- quantile_compare()
 
@@ -215,6 +215,7 @@ ft_1 <- footnote(
 ft_1
 
 ```
+
 ```{r, echo = F}
 
 Fa <- ecdf(a)
