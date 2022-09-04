@@ -2,7 +2,7 @@
 title: When Diversification Increases Risk
 author: Zach Eisenstein
 date: '2022-09-03'
-draft: true
+draft: false
 slug: when-diversification-increases-risk
 categories: []
 tags: 
@@ -74,7 +74,7 @@ The key result in the paper is Theorem 1.
 
 > For iid random variables {{< math >}}$X_1, ..., X_n${{< /math >}} following a Pareto distribution with infinite mean and weights {{< math >}}$\theta_1, ..., \theta_n${{< /math >}} with {{< math >}}$\sum_{i = 1}^{n} \theta_i = 1${{< /math >}}, our main finding in Theorem 1 is the stochastic dominance relation {{< math >}}$$X_1 \le_{st} \theta_1 X_1 + ... + \theta_n X_n$${{< /math >}}
 
-In plain english, for a pareto distributed variable with infinite mean (i.e. {{< math >}}$\alpha < 1${{< /math >}}), the quantiles (or Value at Risk--VaR) of a single random variable will be **less than or equal to** that of a "diversified" portfolio of identical risks! While VaR has been known to fail sub-additivity, that has been confined to some contrived cases and for select percentiles. The amazing result here is that this holds across the full distribution. You're better off putting all your eggs in one basket!
+In plain english, for a pareto distributed variable with infinite mean (i.e. {{< math >}}$\alpha < 1${{< /math >}}), the quantiles (or Value at Risk--VaR) of a single random variable will be **less than or equal to** that of a "diversified" portfolio of identical risks! 
 
 ```{r, echo=F}
 
@@ -115,126 +115,187 @@ p + plot_annotation(
 
 ```
 
+While VaR has been known to fail sub-additivity, that has been confined to some contrived cases and for select percentiles. The amazing result here is that this holds across the full distribution. You're better off putting all your eggs in one basket!
+
 ## A simulation approach
+
+I'll explore the finding above using simulation and visualization. I'll utilize the `*pareto` functions from the `EnvStats` package.
 
 ### Finite Mean 
 
 
-I'll explore the finding above using simulation and visualization.
+First lets look at the case of finite mean, where diversification works. We'll simulate 10 iid parteo random variables with {{< math >}}$\alpha = 3${{< /math >}} and compare the distributions of a standalone portfolio of X1 to a portfolio with 10 equal shares of X1:X10 {{< math >}}$\frac{1}{n}\sum_{i = 1}^{n} X_i${{< /math >}}.
 
 
-First lets look at the case of finite mean, where diversification works. We'll simulate 10 iid parteo random variables with {{< math >}}$\alpha = 3${{< /math >}} and compare the distributions of a standalone portfolio of X1 to a portfolio with 10 equal shares of X1:X10
+To simulate I'll write a function `rpareto_n` that, in addition to the tail factor, takes the number of risks `n` as an input and returns the average for each trial.
 
 
 ```{r}
-trials <- 10e3
-alpha <- 3
-n <- 10 # number of iid pareto variables
-
-# Simulate n iid pareto variables
-sim <- matrix(rpareto(n * trials, shape = alpha, location = 1),
-           nrow = trials)
-
-# single risk
-a <- sim[, 1]
-
-# a tenth of each risk
-b <- rowSums(sim / n)
+rpareto_n <- function(n = 1, alpha = 3, scale = 1, trials = 10e3){
+  
+  # Simulate n iid pareto variables
+  sim <- matrix(rpareto(n * trials, shape = alpha, location = scale),
+             nrow = trials)
+  
+  # equal proportions
+  b <- rowSums(sim / n)
+  
+  return(b)
+  
+}
 ```
 
 
-```{r, echo = F}
+...and simulate. 
 
-quantile_compare <- function(q = c(.5, .75, .8, .9, .95, .99, .995, .999)) {
-  tibble(Metric        = c('Mean', 'SD', q), 
-         Standalone  = c(mean(a), sd(a), quantile(a, q)),
-         Diversified = c(mean(b), sd(b), quantile(b, q)),
-         Difference    = Diversified - Standalone
-  ) %>%
-    mutate_if(is.numeric, ~round(., 3)) %>%
-    flextable::flextable()
+```{r}
+sim_n1 <- rpareto_n(1, 3)
+sim_n10 <- rpareto_n(10, 3)
+
+```
+
+
+```{r, echo=F, warning=F}
+pareto_sum <- function(alpha, scale=1, q = c(.5, .75, .8, .9, .95, .99, .995, .999), values_name = "n = 1") {
+  
+  tbl_mean_sd <- tibble(Mean = if_else(alpha > 1, scale * alpha / (alpha - 1), Inf),
+         SD = if_else(alpha > 2, sqrt(scale^2 * alpha / (alpha - 1)^2 / (alpha - 2)), Inf)) %>%
+    pivot_longer(everything(), names_to = "Metric")
+  
+  tbl_quantiles <- tibble(Metric = q, 
+                          value = map_dbl(q, ~ scale * (1 - .) ^ (-1/alpha)))
+    
+  tbl_mean_sd %>%
+    bind_rows(tbl_quantiles %>%
+                mutate(Metric = as.character(Metric))) %>%
+    rename({{values_name}} := value)
+  
 }
 
-quantile_compare() %>%
-  autofit
+pareto_sum_sim <- function(data, values_name = "value", q = c(.5, .75, .8, .9, .95, .99, .995, .999)) {
   
+ tibble(Metric           = c('Mean', 'SD', q), 
+        {{values_name}} := c(mean(data), sd(data), quantile(data, q)))
+  
+}
+```
+Both distributions have the same mean (except for simulation error). But the diversified risk is the preferred one for the tail region (upper quartile). This is consistent with our intuition of the benefits of diversification. 
+
+```{r, echo=F}
+ft <- pareto_sum(3) %>%
+  left_join(sim_n10 %>%
+              pareto_sum_sim("n = 10"),
+            by = "Metric"
+  ) %>%
+  mutate_if(is.numeric, ~round(., 3)) %>%
+  flextable() %>%
+  set_caption(caption = 'Alpha = 3',
+              style = "Table Caption", 
+              autonum = officer::run_autonum(seq_id = "tab", bkm = "tab1")) %>%
+  autofit
+
+ft
 
 ```
-
 
 ```{r, echo = F}
-
-Fa <- ecdf(a)
-Fb <- ecdf(b)
-
-tibble(loss = seq(0, qpareto(.995, shape = alpha, location = 1), length.out = 1000)) %>%
-  mutate(Standalone = ppareto(loss, shape = alpha, location = 1)) %>%
-  mutate(Diversified = Fb(loss)) %>%
-  pivot_longer(-loss) %>%
-  ggplot(aes(loss, value, color = name)) +
+tibble(p = seq(.5, .999, .01),
+       `n = 1` = quantile(sim_n1, p),
+       `n = 10` = quantile(sim_n10, p)) %>%
+  pivot_longer(-p) %>%
+  ggplot(aes(p, value, color = name)) +
   geom_line() +
-  labs(x = "Loss",
-       y = "Percentile",
-       color = "",
-       title = "Standalone vs Diversified, alpha = 3",
-       subtitle = "Diversified outperforms the Standalone above the 75th Percentile")
+  scale_y_log10() +
+  labs(x = "p",
+     y = "log(VaR(p))",
+     color = "",
+     title = "Standalone vs Diversified, alpha = 3",
+     subtitle = "Diversified outperforms the Standalone above the 75th Percentile")
+
 ```
 
-### Ininite Mean 
+
+### Infinite Mean 
 
 
 Now lets look at the same metrics using an infinite mean pareto, with {{< math >}}$\alpha = 0.5${{< /math >}}
 
-```{r}
-trials <- 10e3
-alpha <- 0.5
-n <- 10 # number of iid pareto variables
+```{r, echo=F, warning=F}
+sim_n1 <- rpareto_n(1, 0.5)
+sim_n10 <- rpareto_n(10, 0.5)
 
-# Simulate n iid pareto variables
-sim <- matrix(rpareto(n * trials, shape = alpha, location = 1),
-           nrow = trials)
-
-# single risk
-a <- sim[, 1]
-
-# a tenth of each risk
-b <- rowSums(sim / n)
 ```
 
+**The standalone risk now outperforms across the whole distribution!**
 
-```{r, echo = F}
+```{r Table2, warning=F, echo=F}
+ft <- pareto_sum(0.5) %>%
+  left_join(sim_n10 %>%
+              pareto_sum_sim("n = 10"),
+            by = "Metric"
+  ) %>%
+  mutate_if(is.numeric, ~round(., 0)) %>%
+  flextable() %>%
+  set_caption(caption = 'Alpha = 0.5',
+              style = "Table Caption", 
+              autonum = officer::run_autonum(seq_id = "tab", bkm = "tab2"))
 
-ft_1 <- quantile_compare()
-
-ft_1 <- footnote(
-  x = ft_1, i = 1:2, j = 1,
+ft <- footnote(
+  x = ft, i = 1:2, j = 1,
   ref_symbols = "*",
   value = as_paragraph("Mean and SD are infinite, results are simply artifacts of a finite sample")
 ) %>%
   autofit()
-  
-ft_1
+
+ft
+```
+
+```{r, echo=F}
+tibble(p = seq(.5, .999, .01),
+       `n = 1` = quantile(sim_n1, p),
+       `n = 10` = quantile(sim_n10, p)) %>%
+  pivot_longer(-p) %>%
+  ggplot(aes(p, value, color = name)) +
+  geom_line() +
+  scale_y_log10() +
+  guides(color = guide_legend(reverse=TRUE)) +
+  labs(x = "p",
+     y = "log(VaR(p))",
+     color = "",
+       title = "Standalone vs Diversified, alpha = 0.5",
+       subtitle = "Standalone outperforms Diversified across the whole curve")
 
 ```
 
-```{r, echo = F}
+### Impact of Changing n
 
-Fa <- ecdf(a)
-Fb <- ecdf(b)
+So we've seen that in an infinite mean regime, diversification failed with n=10 was worse than n=1. But what about n = 2, 3...?
 
-tibble(loss = seq(0, qpareto(.995, shape = alpha, location = 1), length.out = 1000)) %>%
-  mutate(Standalone = ppareto(loss, shape = alpha, location = 1)) %>%
-  mutate(Diversified = Fb(loss)) %>%
-  pivot_longer(-loss) %>%
-  ggplot(aes(loss, value, color = name)) +
+Below I've repeated the simulation for additional number of risks.
+
+**When dealing with infinte mean random variables, the more "diversified" the exposure, the greater the risk!**
+
+```{r, echo=F}
+
+tibble(p = seq(.5, .999, .01),
+       `n = 1` = quantile(rpareto_n(1, 0.5), p),
+       `n = 2` = quantile(rpareto_n(2, 0.5), p),
+       `n = 3` = quantile(rpareto_n(3, 0.5), p),
+       `n = 5` = quantile(rpareto_n(3, 0.5), p),
+       `n = 10` = quantile(rpareto_n(10, 0.5), p)) %>%
+  pivot_longer(-p) %>%
+  mutate(name = fct_inorder(name)) %>%
+  ggplot(aes(p, value, color = name)) +
   geom_line() +
-  labs(x = "Loss",
-       y = "Percentile",
-       color = "",
+  scale_y_log10() +
+  guides(color = guide_legend(reverse=TRUE)) +
+  labs(x = "p",
+     y = "log(VaR(p))",
+     color = "",
        title = "Standalone vs Diversified, alpha = 0.5",
-       subtitle = "Standalone outperforms Diversified across the whole curve")
+       subtitle = "The larger n, the greater the risk")
 ```
 
 ## Conclusion
 
-While the result is amazing, we must consider that it's limited to infinite mean distributions. The authors described some real world risks that had approximates tail factors of less than 1 (marine and wildfire losses). Certainly in the world of insurance where policy limits are the norm, we'd expect losses, no matter how extreme, to be bounded. That said, it's a fascinating result with consequences for the future of risk management. 
+While the result is amazing, we must consider that it's limited to infinite mean distributions. The authors described some real world risks that had approximates tail factors of less than 1 (marine, wildfire losses). Certainly in the world of insurance where policy limits are the norm, we'd expect losses, no matter how extreme, to be bounded. That said, it's a fascinating result with consequences for the future of risk management. 
