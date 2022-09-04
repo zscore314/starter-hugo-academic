@@ -16,9 +16,9 @@ authors: []
 lastmod: '2022-08-31T21:27:09-04:00'
 featured: no
 image:
-  caption: ''
+  caption: 'Image credit: Zach Eisenstein'
   focal_point: ''
-  preview_only: no
+  preview_only: true
 projects: []
 commentable: true
 ---
