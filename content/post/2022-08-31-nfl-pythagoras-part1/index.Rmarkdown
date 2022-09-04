@@ -20,6 +20,7 @@ image:
   focal_point: ''
   preview_only: no
 projects: []
+commentable: true
 ---
 
 I recently picked up the book [Mathletics](https://www.amazon.com/Mathletics-Gamblers-Managers-Mathematics-Sports-dp-0691177627/dp/0691177627/) "How gamblers, managers, and fans use mathematics in sports." by Wayne Winston after hearing a recommendation in an online R meetup. 

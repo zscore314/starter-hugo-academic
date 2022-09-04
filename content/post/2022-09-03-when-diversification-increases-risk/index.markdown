@@ -21,6 +21,7 @@ image:
   focal_point: ''
   preview_only: true
 projects: []
+commentable: true
 ---
 
 <link href="{{< blogdown/postref >}}index_files/tabwid/tabwid.css" rel="stylesheet" />
