@@ -155,7 +155,8 @@ quantile_compare <- function(q = c(.5, .75, .8, .9, .95, .99, .995, .999)) {
     flextable::flextable()
 }
 
-quantile_compare()
+quantile_compare() %>%
+  autofit
   
 
 ```
