@@ -75,9 +75,9 @@ features:
     gravatar: false
     shape: circle
   comment:
-    provider: ''
+    provider: 'disqus'
     disqus:
-      shortname: ''
+      shortname: 'zscore-1'
       show_count: true
     commento:
       url: ''
