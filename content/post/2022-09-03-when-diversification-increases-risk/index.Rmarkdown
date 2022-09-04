@@ -299,3 +299,6 @@ tibble(p = seq(.5, .999, .01),
 ## Conclusion
 
 While the result is amazing, we must consider that it's limited to infinite mean distributions. The authors described some real world risks that had approximates tail factors of less than 1 (marine, wildfire losses). Certainly in the world of insurance where policy limits are the norm, we'd expect losses, no matter how extreme, to be bounded. That said, it's a fascinating result with consequences for the future of risk management. 
+
+Note: Most code has been omitted for brevity. Source code [here](https://github.com/zscore314/starter-hugo-academic/blob/main/content/post/2022-09-03-when-diversification-increases-risk/index.Rmarkdown) 
+
